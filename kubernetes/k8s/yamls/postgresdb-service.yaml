@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresdb-database-svc-web
+  namespace: dbs
+  labels:
+    app.kubernetes.io/name: postgresdb-database-svc-web
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: postgresdb-depl
+  ports:
+    - name: postgres-svc
+      port: 5432
+      protocol: TCP
+      targetPort: 5432

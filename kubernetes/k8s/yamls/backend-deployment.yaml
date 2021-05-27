@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: apps
+  labels:
+    app.kubernetes.io/name: backend-depl
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: backend-depl
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: backend-depl
+    spec:
+      containers:
+        - name: backend
+          image: task_mgt_be
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: port-svc
+              containerPort: 4000
+              protocol: TCP
+          env:
+            - name: JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: JWT_KEY
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: postgresdb-configmap
+                  key: database_url
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: pg-root-username
+            - name: POSTGRES_DB
+              value: taskmanagement
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: pg-root-password
+          volumeMounts:
+            - mountPath: /data/sqls
+              name: db-volume
+      initContainers:
+        - name: createdb
+          image: governmentpaas/psql
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: pg-root-password
+            - name: SQL_FILE
+              valueFrom:
+                configMapKeyRef:
+                  name: testsqlfile
+                  key: create_tasks_db
+          command:
+            - "psql"
+            - "-w"
+            - "-h"
+            - "postgresdb-database-svc-web.dbs"
+            - "-p"
+            - "5432"
+            - "-U"
+            - "test_user"
+            - "-f"
+            - "/data/sqls/create_tasks_db"
+            - "postgres"
+          volumeMounts:
+            - mountPath: /data/sqls
+              name: db-volume
+      volumes:
+        - name: db-volume
+          configMap:
+            name: testsqlfile

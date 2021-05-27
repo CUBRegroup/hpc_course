@@ -1,0 +1,11 @@
+db:
+  host: 'postgresdb'
+  username: 'test_user'
+  password: 'mysecretpassword'
+  synchronize: true
+
+jwt:
+  secret: 'topSecret51'
+
+server:
+  origin: http://tasks-mgt-be

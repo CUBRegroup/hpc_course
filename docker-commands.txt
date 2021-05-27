@@ -1,0 +1,60 @@
+#check if docker is installed 
+docker -v
+
+#get information about docker and system
+docker info
+
+#pull ubuntu image from docker repository
+docker pull ubuntu
+
+#list all docker images
+docker images
+
+#create ubuntu container
+docker run -it ubuntu
+
+#create a file with cat
+cat>test.txt
+
+#view the file
+more test.txt
+
+#list contents of the folder
+ls -l
+
+#list all running containers
+docker ps
+
+#list all running and exited containers
+docker ps -a
+
+#check logs
+docker logs container_id
+
+#create + start container
+docker run -it alpine sh
+
+#run docker image with name and automatic delete after stopping container
+docker run --name chosen_name --rm alpine
+
+#access running container
+docker exec -it container_id bash
+
+#stop docker container gracefully
+docker stop container_id
+
+#start a container
+docker start container_id
+
+#kill docker container
+docker kill container_id
+
+#delete stopped container
+docker rm container_id
+
+#delete docker image
+docker rmi image_id
+
+#check history
+docker history alpine
+

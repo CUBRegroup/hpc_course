@@ -1,0 +1,65 @@
+apiVersion: skaffold/v2beta6
+kind: Config
+deploy:
+  helm:
+    releases:
+      - name: ingress
+        chartPath: .\k8s\helm\
+        valuesFiles:
+          - .\k8s\helm\ingress-values.yaml
+      - name: postgresdb
+        chartPath: .\k8s\helm\
+        valuesFiles:
+          - .\k8s\helm\postgres-values.yaml
+        setValues:
+          volumes.pvc.name: postgres-db-pv-claim
+          volumes.pvc.existing_claim:
+      - name: pg-admin
+        chartPath: .\k8s\helm\
+        valuesFiles:
+          - .\k8s\helm\pgadmin-values.yaml
+        setValues:
+      - name: backend
+        chartPath: .\k8s\helm\
+        valuesFiles:
+          - .\k8s\helm\micro-values.yaml
+        artifactOverrides:
+          image: task_mgt_be
+        setValues:
+          enableInitContainers: true
+          volumes.enabled: true
+          environment[1].valueFrom.configMapKeyRef.name: postgresdb-configmap
+          environment[3].value: tasks
+          initContainers.createdb.command[3]: 'postgresdb-database-svc-web.dbs'
+          initContainers.createdb.command[9]: '/data/sqls/create_tasks_db'
+          initContainers.createdb.env[1].valueFrom.configMapKeyRef.key: create_tasks_db
+      - name: frontend
+        chartPath: .\k8s\helm\
+        valuesFiles:
+          - .\k8s\helm\client-values.yaml
+        artifactOverrides:
+          image: task_mgt_fe
+        setValues:
+build:
+  local:
+    push: false
+    concurrency: 5
+  artifacts:
+    - image: task_mgt_be
+      context: backend
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "src/**/*.ts"
+            dest: .
+    - image: task_mgt_fe
+      context: frontend
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "**/*.ts"
+            dest: .
+          - src: "**/*.tsx"
+            dest: .

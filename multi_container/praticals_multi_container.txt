@@ -1,0 +1,17 @@
+#create docker network
+docker network create taskmgt-network
+
+#database
+docker run --name postgresdb -e POSTGRES_PASSWORD=mysecretpassword -v /custom/mount:/var/lib/postgresql/data --rm --network taskmgt-network --env POSTGRES_USER=test_user --env POSTGRES_DB=taskmanagement postgres
+
+#backend
+docker build -t tasksmgt_api-image .
+docker run --name tasksmgtapi --rm -p 4000:4000 --env POSTGRES_HOST=postgresdb --env POSTGRES_PASSWORD=mysecretpassword --env POSTGRES_USER=test_user --env POSTGRES_DB=taskmanagement --network taskmgt-network tasksmgt_api-image
+
+#frontend
+docker build -t taskmgt_frontend-image .
+docker run --name tasksmgt_frontend --rm -it -p 3000:3000 --network taskmgt-network taskmgt_frontend-image
+
+#web server
+docker build -t taskmgt_nginx-image .
+docker run --name taskmgt_nginx --rm --network taskmgt-network -p 8080:80 taskmgt_nginx-image

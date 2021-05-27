@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresdb-database
+  namespace: dbs
+  labels:
+    app.kubernetes.io/name: postgresdb-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgresdb-depl
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgresdb-depl
+    spec:
+      containers:
+        - name: postgresdb
+          image: postgres
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres-svc
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: pg-root-username
+            - name: POSTGRES_DB
+              value: taskmanagement
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: pg-root-password
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgresdb-pv-claim-volume
+      volumes:
+        - name: postgresdb-pv-claim-volume
+          persistentVolumeClaim:
+            claimName: postgresdb-pv-claim

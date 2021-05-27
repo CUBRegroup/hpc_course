@@ -1,0 +1,5 @@
+db:
+  synchronize: false
+
+server:
+  origin: http://nest.dev:4000

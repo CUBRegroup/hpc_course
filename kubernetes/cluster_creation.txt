@@ -1,0 +1,57 @@
+#create secret - recreate for apps
+kubectl apply -f .\k8s\yamls\postgres-secret.yaml
+#check if it was sucessfully created
+kubectl get secrets -n dbs
+
+#create volume claim for the database
+kubectl apply -f .\k8s\yamls\postgresdb-pvc.yaml
+#check if it was created
+kubectl get pvc -n dbs
+
+#create service
+kubectl apply -f .\k8s\yamls\postgresdb-service.yaml
+#check if it is created
+kubectl get services -n dbs
+
+#create configmaps
+kubectl apply -f .\k8s\yamls\postgresdb-configmap.yaml
+#check if configmap is created
+kubectl get configmaps -n apps
+
+#create deployments
+kubectl apply -f .\k8s\yamls\postgresdb-deployment.yaml
+#check if deployment is created
+kubectl get deployments -n dbs
+#check if pods are created
+kubectl get pods -n dbs
+
+#Backend
+#create secret
+kubectl apply -f .\k8s\yamls\jwt-secret.yaml
+
+#first create image - image can also be pushed to a public repository
+docker build -t task_mgt_be .\backend\
+#create deployment
+kubectl apply -f .\k8s\yamls\backend-deployment.yaml
+
+#frontend
+#create service
+kubectl apply -f .\k8s\yamls\frontend-service.yaml
+#build the image
+docker build -t task_mgt_fe .\frontend\
+#create the deployment
+kubectl apply -f .\k8s\yamls\frontend-deployment.yaml
+
+#install nginx ingress controller
+#looks for what suits your operating system
+https://kubernetes.github.io/ingress-nginx/deploy/
+
+#edits your hosts file
+#Windows 10 - "C:\Windows\System32\drivers\etc\hosts"
+#Linux - "/etc/hosts"
+#Mac OS X - "/private/etc/hosts"
+
+#create ingress
+kubectl apply -f .\k8s\yamls\ingress.yaml
+#check if created
+kubectl get ingress -n apps
